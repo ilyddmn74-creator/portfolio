@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Set Director | Production Clicker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark: #0a0a0a;
+            --charcoal: #1a1a1a;
+            --glow: rgba(212, 175, 55, 0.3);
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: #f5f5f5;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        h1, h2, h3 { font-family: 'Cinzel', serif; }
+        
+        .gold-text { color: var(--gold); }
+        .gold-border { border-color: var(--gold); }
+        .gold-bg { background-color: var(--gold); }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .camera-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            cursor: pointer;
+            transition: transform 0.1s active;
+        }
+        
+        .camera-container:active {
+            transform: scale(0.95);
+        }
+
+        .lens-glow {
+            box-shadow: 0 0 40px var(--glow);
+        }
+
+        .floating-text {
+            position: absolute;
+            pointer-events: none;
+            color: var(--gold);
+            font-weight: bold;
+            font-family: 'Cinzel', serif;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
+        }
+
+        .upgrade-card {
+            transition: all 0.2s ease;
+        }
+        .upgrade-card:active {
+            transform: scale(0.98);
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .upgrade-card.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen select-none">
+
+    <!-- Header Stats -->
+    <header class="p-6 pt-10 text-center glass">
+        <h1 class="text-xs uppercase tracking-[0.3em] text-gray-500 mb-1">Set Director</h1>
+        <div id="cash-display" class="text-4xl font-bold gold-text tracking-tighter">$0</div>
+        <div id="cps-display" class="text-xs text-gray-400 mt-1 uppercase tracking-widest">Revenue: $0/sec</div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="flex-grow flex flex-col items-center justify-center p-6 relative">
+        <div id="camera-trigger" class="camera-container flex items-center justify-center">
+            <!-- SVG Camera Icon -->
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                <rect x="10" y="30" width="80" height="50" rx="4" fill="#1a1a1a" stroke="#d4af37" stroke-width="1"/>
+                <rect x="35" y="22" width="30" height="8" rx="2" fill="#1a1a1a" stroke="#d4af37" stroke-width="1"/>
+                <circle cx="50" cy="55" r="22" fill="#050505" stroke="#d4af37" stroke-width="2" class="lens-glow"/>
+                <circle cx="50" cy="55" r="15" fill="#111" stroke="#d4af37" stroke-width="0.5" opacity="0.5"/>
+                <circle cx="45" cy="50" r="4" fill="#d4af37" opacity="0.2"/>
+                <circle cx="78" cy="38" r="3" fill="#d4af37"/>
+            </svg>
+        </div>
+    </main>
+
+    <!-- Shop/Upgrades Overlay -->
+    <section class="h-[45vh] glass rounded-t-[2.5rem] p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+            <h2 class="text-lg font-bold tracking-widest uppercase">Production Shop</h2>
+            <div id="total-clicks" class="text-[10px] text-gray-600 uppercase">Frames: 0</div>
+        </div>
+
+        <div class="flex-grow overflow-y-auto space-y-3 custom-scrollbar pr-1" id="upgrades-list">
+            <!-- Upgrades injected here -->
+        </div>
+    </section>
+
+    <script>
+        // --- GAME STATE ---
+        let state = {
+            cash: 0,
+            totalCash: 0,
+            clickValue: 1,
+            cps: 0,
+            frames: 0,
+            upgrades: {
+                // Click Upgrades
+                lenses: { id: 'lenses', name: 'Leica Lenses', baseCost: 15, count: 0, type: 'click', increment: 1, desc: '+1 per frame' },
+                cards: { id: 'cards', name: 'High-Speed CFast', baseCost: 100, count: 0, type: 'click', increment: 5, desc: '+5 per frame' },
+                shutter: { id: 'shutter', name: 'Gold Shutter', baseCost: 1000, count: 0, type: 'click', increment: 25, desc: '+25 per frame' },
+                // Passive Upgrades
+                pa: { id: 'pa', name: 'Production Assistant', baseCost: 50, count: 0, type: 'passive', increment: 1, desc: '$1/sec' },
+                gaffer: { id: 'gaffer', name: 'Lighting Gaffer', baseCost: 250, count: 0, type: 'passive', increment: 5, desc: '$5/sec' },
+                art: { id: 'art', name: 'Art Director', baseCost: 1200, count: 0, type: 'passive', increment: 20, desc: '$20/sec' },
+                dop: { id: 'dop', name: 'Director of Photography', baseCost: 5000, count: 0, type: 'passive', increment: 75, desc: '$75/sec' },
+                producer: { id: 'producer', name: 'Executive Producer', baseCost: 25000, count: 0, type: 'passive', increment: 250, desc: '$250/sec' }
+            }
+        };
+
+        // --- AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, type, duration, vol = 0.1) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const sounds = {
+            click: () => playTone(150, 'sine', 0.1, 0.2),
+            buy: () => {
+                playTone(400, 'triangle', 0.2, 0.1);
+                setTimeout(() => playTone(600, 'triangle', 0.2, 0.1), 100);
+            }
+        };
+
+        // --- CORE LOGIC ---
+        function formatCash(num) {
+            return '$' + Math.floor(num).toLocaleString();
+        }
+
+        function updateDisplay() {
+            document.getElementById('cash-display').innerText = formatCash(state.cash);
+            document.getElementById('cps-display').innerText = `Revenue: ${formatCash(state.cps)}/sec`;
+            document.getElementById('total-clicks').innerText = `Frames: ${state.frames}`;
+            renderUpgrades();
+        }
+
+        function getCost(upgrade) {
+            return Math.floor(upgrade.baseCost * Math.pow(1.15, upgrade.count));
+        }
+
+        function renderUpgrades() {
+            const list = document.getElementById('upgrades-list');
+            list.innerHTML = '';
+            
+            Object.values(state.upgrades).forEach(upg => {
+                const cost = getCost(upg);
+                const canAfford = state.cash >= cost;
+                
+                const card = document.createElement('div');
+                card.className = `upgrade-card glass p-4 rounded-2xl flex justify-between items-center ${canAfford ? '' : 'disabled'}`;
+                card.onclick = () => buyUpgrade(upg.id);
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="font-bold text-sm uppercase tracking-wider">${upg.name}</div>
+                        <div class="text-[10px] text-gray-500 italic">${upg.desc} • Owned: ${upg.count}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-bold gold-text">${formatCash(cost)}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function buyUpgrade(id) {
+            const upg = state.upgrades[id];
+            const cost = getCost(upg);
+            
+            if (state.cash >= cost) {
+                state.cash -= cost;
+                upg.count++;
+                sounds.buy();
+                recalculateStats();
+                updateDisplay();
+                saveGame();
+            }
+        }
+
+        function recalculateStats() {
+            let clickBonus = 1;
+            let passiveBonus = 0;
+            
+            Object.values(state.upgrades).forEach(upg => {
+                if (upg.type === 'click') {
+                    clickBonus += upg.count * upg.increment;
+                } else {
+                    passiveBonus += upg.count * upg.increment;
+                }
+            });
+            
+            state.clickValue = clickBonus;
+            state.cps = passiveBonus;
+        }
+
+        function handleTap(e) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            state.cash += state.clickValue;
+            state.totalCash += state.clickValue;
+            state.frames++;
+            sounds.click();
+            
+            // Animation
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            createFloatingText(x, y, `+$${state.clickValue}`);
+            
+            updateDisplay();
+        }
+
+        function createFloatingText(x, y, text) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        // --- STORAGE ---
+        function saveGame() {
+            localStorage.setItem('setDirectorSave', JSON.stringify(state));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('setDirectorSave');
+            if (saved) {
+                const loaded = JSON.parse(saved);
+                // Merge to ensure new upgrades in code appear in old saves
+                state = { ...state, ...loaded };
+                recalculateStats();
+                updateDisplay();
+            }
+        }
+
+        // --- LOOPS ---
+        document.getElementById('camera-trigger').addEventListener('pointerdown', handleTap);
+
+        setInterval(() => {
+            if (state.cps > 0) {
+                state.cash += state.cps / 10;
+                state.totalCash += state.cps / 10;
+                updateDisplay();
+            }
+        }, 100);
+
+        setInterval(saveGame, 5000);
+
+        // Init
+        loadGame();
+        updateDisplay();
+    </script>
+</body>
+</html>
