@@ -30,7 +30,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
-            transition: opacity 1s ease;
+            transition: opacity 0.8s ease;
         }
 
         .loader-text {
@@ -163,53 +163,77 @@
         let isPlaying = false;
 
         function hideLoader() {
+            if (!loader) return;
             loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 1000);
+            setTimeout(() => {
+                if (loader) loader.style.display = 'none';
+            }, 800);
         }
 
-        // Fail-safe: Hide loader after 2.5s regardless of progress
-        const loadTimeout = setTimeout(hideLoader, 2500);
+        // Fail-safe: Always hide loader after timeout
+        const loadTimeout = setTimeout(hideLoader, 3000);
+
+        // Pre-initialize objects
+        const sliders = ['rain', 'ocean', 'fire', 'zen', 'chimes'];
 
         const loadPromises = Object.keys(audioData).map(key => {
             return new Promise((resolve) => {
-                const audio = new Audio();
-                audio.crossOrigin = "anonymous";
-                audio.src = audioData[key];
-                audio.loop = true;
-                audio.volume = 0;
-                audios[key] = audio;
-                
-                audio.addEventListener('canplaythrough', resolve, { once: true });
-                audio.addEventListener('error', resolve, { once: true });
+                try {
+                    const audio = new Audio();
+                    audio.crossOrigin = "anonymous";
+                    audio.src = audioData[key];
+                    audio.loop = true;
+                    audio.volume = 0;
+                    audios[key] = audio;
+                    
+                    audio.addEventListener('canplaythrough', resolve, { once: true });
+                    audio.addEventListener('error', resolve, { once: true });
+                    // Also resolve if it takes too long for this specific asset
+                    setTimeout(resolve, 2500);
+                } catch(e) {
+                    console.error(e);
+                    resolve();
+                }
             });
         });
 
         Promise.all(loadPromises).then(() => {
             clearTimeout(loadTimeout);
             hideLoader();
+        }).catch(() => {
+            hideLoader();
         });
 
         const masterPower = document.getElementById('masterPower');
-        masterPower.addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            masterPower.classList.toggle('active', isPlaying);
-            Object.values(audios).forEach(a => isPlaying ? a.play().catch(e => {}) : a.pause());
-        });
+        if (masterPower) {
+            masterPower.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                masterPower.classList.toggle('active', isPlaying);
+                Object.values(audios).forEach(a => {
+                    if (isPlaying) {
+                        a.play().catch(e => console.log("Autoplay blocked or load failed"));
+                    } else {
+                        a.pause();
+                    }
+                });
+            });
+        }
 
-        const sliders = ['rain', 'ocean', 'fire', 'zen', 'chimes'];
         sliders.forEach(key => {
             const slider = document.getElementById(`${key}-slider`);
             const label = document.getElementById(`${key}-val`);
-            slider.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                label.innerText = Math.round(val * 100) + '%';
-                if (audios[key]) audios[key].volume = val;
-            });
+            if (slider && label) {
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    label.innerText = Math.round(val * 100) + '%';
+                    if (audios[key]) audios[key].volume = val;
+                });
+            }
         });
 
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                if (!isPlaying) masterPower.click();
+                if (!isPlaying && masterPower) masterPower.click();
                 const preset = btn.dataset.preset;
                 const config = { rain: 0, ocean: 0, fire: 0, zen: 0, chimes: 0 };
                 if (preset === 'luks') { config.ocean = 0.5; config.zen = 0.4; config.chimes = 0.3; }
@@ -218,8 +242,10 @@
 
                 Object.keys(config).forEach(key => {
                     const slider = document.getElementById(`${key}-slider`);
-                    slider.value = config[key];
-                    slider.dispatchEvent(new Event('input'));
+                    if (slider) {
+                        slider.value = config[key];
+                        slider.dispatchEvent(new Event('input'));
+                    }
                 });
             });
         });
