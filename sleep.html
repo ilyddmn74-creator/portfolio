@@ -52,7 +52,6 @@
             text-shadow: 0 0 15px var(--gold-glow);
         }
 
-        /* Master Power Button */
         .power-wrapper {
             margin-bottom: 60px;
             position: relative;
@@ -112,7 +111,6 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
 
-        /* Sound Grid */
         .sound-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -156,7 +154,6 @@
             fill: var(--gold);
         }
 
-        /* Custom Slider */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
@@ -191,7 +188,6 @@
             transform: scale(1.2);
         }
 
-        /* Preset Buttons */
         .presets {
             display: flex;
             justify-content: center;
@@ -219,7 +215,41 @@
             border-color: var(--gold);
         }
 
-        /* Mobile Adjustments */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 1s ease, visibility 1s;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--accent-muted);
+            border-top: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 480px) {
             h1 { font-size: 1.8rem; }
             .container { padding: 20px; }
@@ -227,6 +257,11 @@
     </style>
 </head>
 <body>
+
+    <div id="loading" class="loading-overlay">
+        <div class="loader"></div>
+        <div style="font-family: 'Cinzel'; letter-spacing: 4px; color: var(--gold); font-size: 0.8rem;">Harmonizing</div>
+    </div>
 
     <div class="container">
         <h1>Zen</h1>
@@ -239,19 +274,17 @@
         </div>
 
         <div class="sound-grid">
-            <!-- Rain -->
             <div class="sound-control">
                 <div class="sound-header">
                     <span class="sound-label">
                         <svg class="sound-icon" viewBox="0 0 24 24"><path d="M12,20A6,6 0 0,1 6,14C6,10 12,3.25 12,3.25C12,3.25 18,10 18,14A6,6 0 0,1 12,20Z" /></svg>
-                        Deep Rain
+                        Organic Rain
                     </span>
                     <span id="rain-val">0%</span>
                 </div>
                 <input type="range" id="rain-slider" min="0" max="1" step="0.01" value="0">
             </div>
 
-            <!-- Ocean -->
             <div class="sound-control">
                 <div class="sound-header">
                     <span class="sound-label">
@@ -263,31 +296,28 @@
                 <input type="range" id="ocean-slider" min="0" max="1" step="0.01" value="0">
             </div>
 
-            <!-- Campfire -->
             <div class="sound-control">
                 <div class="sound-header">
                     <span class="sound-label">
                         <svg class="sound-icon" viewBox="0 0 24 24"><path d="M17.66,11.2C17.43,10.9 17.15,10.64 16.89,10.38C16.22,9.7 15.46,9.03 15.46,7.73C15.46,6.47 16.14,5.4 16.71,4.38C17.25,3.41 16.74,2.09 15.63,2.23C14.58,2.37 13.61,3.07 12.87,3.81C10.59,6.13 10.53,9.8 12.55,12.35C12.71,12.56 13,12.83 13,13.12C13,13.44 12.75,13.73 12.44,13.77C12.13,13.83 11.8,13.63 11.59,13.41C10.15,11.95 10.15,9.75 10.15,7.74C10.15,6.74 10.06,5.7 9.4,4.92C9,4.44 8.23,4.2 7.76,4.6C6.83,5.36 6.38,6.55 6.35,7.76C6.3,9.89 7.41,11.83 8.92,13.33C9.37,13.8 9.93,14.23 10.11,14.89C10.41,15.85 9.91,16.88 9.07,17.39C8.23,17.9 7.16,17.83 6.3,17.25C5.41,16.65 4.88,15.58 4.85,14.5C4.85,14.13 4.46,13.88 4.13,14.07C3.03,14.71 2.31,16 2.08,17.26C1.72,19.34 2.46,21.57 4.13,22.81C5.8,24.05 8.05,24.09 9.83,23.19C13.07,21.55 14.53,17.65 13.14,14.44C13.06,14.27 13,14.11 13,13.93C13,13.66 13.26,13.58 13.4,13.43C14.78,12.11 16.47,13.78 17.75,14.84C18.94,15.81 20.3,16.81 21.36,18.07C22.69,19.62 22.84,21.78 21.82,23.57C21.64,23.88 22.1,24.22 22.35,23.94C23.64,22.4 23.92,20.19 23.15,18.25C22.38,16.31 20.8,14.81 19.25,13.5C18.66,13 18.08,12.5 17.65,11.83C17.58,11.72 17.5,11.61 17.43,11.5C17.4,11.4 17.56,11.3 17.66,11.2Z" /></svg>
-                        Campfire
+                        Warm Campfire
                     </span>
                     <span id="fire-val">0%</span>
                 </div>
                 <input type="range" id="fire-slider" min="0" max="1" step="0.01" value="0">
             </div>
 
-            <!-- Zen Chords -->
             <div class="sound-control">
                 <div class="sound-header">
                     <span class="sound-label">
                         <svg class="sound-icon" viewBox="0 0 24 24"><path d="M12,3V12.26C11.44,12.09 10.83,12 10.2,12C8.1,12 6.39,13.71 6.39,15.81C6.39,17.91 8.1,19.62 10.2,19.62C12.3,19.62 14.01,17.91 14.01,15.81V7H18V3H12Z" /></svg>
-                        Zen Chords
+                        Zen Piano
                     </span>
                     <span id="zen-val">0%</span>
                 </div>
                 <input type="range" id="zen-slider" min="0" max="1" step="0.01" value="0">
             </div>
 
-            <!-- Wind Chimes -->
             <div class="sound-control">
                 <div class="sound-header">
                     <span class="sound-label">
@@ -301,24 +331,39 @@
         </div>
 
         <div class="presets">
-            <button class="preset-btn" data-preset="luks">Lks Gece</button>
-            <button class="preset-btn" data-preset="derin">Derin Ya mur</button>
-            <button class="preset-btn" data-preset="altin">Alt1n Meditasyon</button>
+            <button class="preset-btn" data-preset="luks">Lüks Gece</button>
+            <button class="preset-btn" data-preset="derin">Derin Yağmur</button>
+            <button class="preset-btn" data-preset="altin">Altın Meditasyon</button>
         </div>
     </div>
 
     <script>
-        let audioCtx = null;
-        let isPlaying = false;
-
-        // Sound nodes
-        const nodes = {
-            rain: { gain: null, source: null },
-            ocean: { gain: null, source: null },
-            fire: { gain: null, source: null },
-            zen: { gain: null, lfo: null },
-            chimes: { gain: null }
+        const audioUrls = {
+            rain: 'https://cdn.pixabay.com/audio/2022/03/10/audio_51061c0288.mp3',
+            ocean: 'https://cdn.pixabay.com/audio/2022/03/24/audio_3313463321.mp3',
+            fire: 'https://cdn.pixabay.com/audio/2022/01/18/audio_823055952c.mp3',
+            zen: 'https://cdn.pixabay.com/audio/2022/02/22/audio_d0c6ff1bab.mp3',
+            chimes: 'https://cdn.pixabay.com/audio/2022/03/15/audio_291129994c.mp3'
         };
+
+        const sounds = {};
+        let isPlaying = false;
+        let loadedCount = 0;
+        const totalSounds = Object.keys(audioUrls).length;
+
+        Object.entries(audioUrls).forEach(([key, url]) => {
+            const audio = new Audio(url);
+            audio.loop = true;
+            audio.volume = 0;
+            audio.crossOrigin = "anonymous";
+            audio.addEventListener('canplaythrough', () => {
+                loadedCount++;
+                if (loadedCount === totalSounds) {
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            }, { once: true });
+            sounds[key] = audio;
+        });
 
         const masterPower = document.getElementById('masterPower');
         const sliders = {
@@ -337,191 +382,27 @@
             chimes: document.getElementById('chime-val')
         };
 
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // 1. Rain (Pink Noise)
-            nodes.rain.gain = audioCtx.createGain();
-            nodes.rain.gain.gain.value = 0;
-            nodes.rain.gain.connect(audioCtx.destination);
-            createPinkNoise(nodes.rain.gain);
-
-            // 2. Ocean (Modulated White Noise)
-            nodes.ocean.gain = audioCtx.createGain();
-            nodes.ocean.gain.gain.value = 0;
-            const oceanMod = audioCtx.createGain();
-            const oceanLFO = audioCtx.createOscillator();
-            oceanLFO.frequency.value = 0.1; // 10s cycles
-            oceanLFO.connect(oceanMod.gain);
-            oceanLFO.start();
-            
-            const oceanFilter = audioCtx.createBiquadFilter();
-            oceanFilter.type = 'lowpass';
-            oceanFilter.frequency.value = 800;
-            
-            createWhiteNoise(oceanMod);
-            oceanMod.connect(oceanFilter);
-            oceanFilter.connect(nodes.ocean.gain);
-            nodes.ocean.gain.connect(audioCtx.destination);
-
-            // 3. Campfire (Noise + Impulses)
-            nodes.fire.gain = audioCtx.createGain();
-            nodes.fire.gain.gain.value = 0;
-            nodes.fire.gain.connect(audioCtx.destination);
-            createCampfire(nodes.fire.gain);
-
-            // 4. Zen Chords (Ambient Synth)
-            nodes.zen.gain = audioCtx.createGain();
-            nodes.zen.gain.gain.value = 0;
-            nodes.zen.gain.connect(audioCtx.destination);
-            startZenChords(nodes.zen.gain);
-
-            // 5. Wind Chimes (Resonant Pentatonic)
-            nodes.chimes.gain = audioCtx.createGain();
-            nodes.chimes.gain.gain.value = 0;
-            nodes.chimes.gain.connect(audioCtx.destination);
-            startWindChimes(nodes.chimes.gain);
-        }
-
-        function createWhiteNoise(target) {
-            const bufferSize = 2 * audioCtx.sampleRate;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-            const whiteNoise = audioCtx.createBufferSource();
-            whiteNoise.buffer = buffer;
-            whiteNoise.loop = true;
-            whiteNoise.connect(target);
-            whiteNoise.start();
-        }
-
-        function createPinkNoise(target) {
-            const bufferSize = 4096;
-            let b0, b1, b2, b3, b4, b5, b6;
-            b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
-            const node = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-            node.onaudioprocess = function(e) {
-                const output = e.outputBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    b0 = 0.99886 * b0 + white * 0.0555179;
-                    b1 = 0.99332 * b1 + white * 0.0750759;
-                    b2 = 0.96900 * b2 + white * 0.1538520;
-                    b3 = 0.86650 * b3 + white * 0.3104856;
-                    b4 = 0.55000 * b4 + white * 0.5329522;
-                    b5 = -0.7616 * b5 - white * 0.0168980;
-                    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                    output[i] *= 0.11; // (roughly) compensate for gain
-                    b6 = white * 0.115926;
-                }
-            };
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 1000;
-            node.connect(filter);
-            filter.connect(target);
-        }
-
-        function createCampfire(target) {
-            // Low rumble (brown noise)
-            const rumbleGain = audioCtx.createGain();
-            rumbleGain.gain.value = 0.5;
-            createPinkNoise(rumbleGain); 
-            const rumbleFilter = audioCtx.createBiquadFilter();
-            rumbleFilter.frequency.value = 150;
-            rumbleGain.connect(rumbleFilter);
-            rumbleFilter.connect(target);
-
-            // Crackles
-            setInterval(() => {
-                if (!isPlaying || nodes.fire.gain.gain.value === 0) return;
-                if (Math.random() > 0.9) {
-                    const osc = audioCtx.createOscillator();
-                    const g = audioCtx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.value = Math.random() * 500 + 100;
-                    g.gain.setValueAtTime(0.01, audioCtx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05);
-                    osc.connect(g);
-                    g.connect(target);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.05);
-                }
-            }, 50);
-        }
-
-        function startZenChords(target) {
-            const freqs = [130.81, 164.81, 196.00, 246.94]; // C-E-G-B (Cmaj7) - gold/warm
-            freqs.forEach(f => {
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = f;
-                
-                // slow drift
-                const lfo = audioCtx.createOscillator();
-                lfo.frequency.value = 0.05 + Math.random() * 0.05;
-                const lfoGain = audioCtx.createGain();
-                lfoGain.gain.value = 0.1;
-                lfo.connect(lfoGain);
-                lfoGain.connect(g.gain);
-                lfo.start();
-
-                g.gain.value = 0.05;
-                osc.connect(g);
-                g.connect(target);
-                osc.start();
-            });
-        }
-
-        function startWindChimes(target) {
-            const pentatonic = [523.25, 587.33, 659.25, 783.99, 880.00]; // C5 Pentatonic
-            setInterval(() => {
-                if (!isPlaying || nodes.chimes.gain.gain.value === 0) return;
-                if (Math.random() > 0.95) {
-                    const f = pentatonic[Math.floor(Math.random() * pentatonic.length)];
-                    const osc = audioCtx.createOscillator();
-                    const g = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = f;
-                    g.gain.setValueAtTime(0, audioCtx.currentTime);
-                    g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
-                    g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 4);
-                    osc.connect(g);
-                    g.connect(target);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 4);
-                }
-            }, 300);
-        }
-
-        // UI Logic
         masterPower.addEventListener('click', () => {
-            if (!audioCtx) initAudio();
-            
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
             isPlaying = !isPlaying;
             masterPower.classList.toggle('active', isPlaying);
             
-            if (!isPlaying) {
-                audioCtx.suspend();
-            }
+            Object.values(sounds).forEach(audio => {
+                if (isPlaying) {
+                    audio.play().catch(e => console.log("Autoplay blocked", e));
+                } else {
+                    audio.pause();
+                }
+            });
         });
 
         Object.keys(sliders).forEach(key => {
             sliders[key].addEventListener('input', (e) => {
-                const val = e.target.value;
+                const val = parseFloat(e.target.value);
                 labels[key].innerText = Math.round(val * 100) + '%';
-                if (nodes[key].gain) {
-                    nodes[key].gain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.1);
-                }
+                sounds[key].volume = val;
             });
         });
 
-        // Presets
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!isPlaying) masterPower.click();
